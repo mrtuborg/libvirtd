@@ -1,13 +1,15 @@
 #!/bin/bash
-org=${1}
-server_address=${2}
+org=${2}
+server_address=${1}
 
 [ -z "${server_address}"  ] && \
-              echo "Specify server_address as a 4th arg" && \
+              echo "Specify server_address as an 1st arg" && \
               exit -1
 
-server_hostname=$(ssh root@${host_system} hostname)
-client_hostname=$(hostname)
+server_hostname=${server_address}
+#$(ssh root@${host_system} hostname)
+client_hostname=10.0.1.42 
+#$(hostname)
 
 [ -z "${org}" ] && org=libvirt.org
 
@@ -103,10 +105,19 @@ ssh root@${server_address} "chown root:root /etc/pki/libvirt/private/clientkey.p
 ssh root@${server_address} "chmod 400 /etc/pki/libvirt/private/clientkey.pem"
 ssh root@${server_address} "restorecon /etc/pki/libvirt/clientcert.pem /etc/pki/libvirt/private/clientkey.pem"
 
+
+#echo "cert_file = '/etc/pki/libvirt/clientcert.pem'" > libvirtd.conf
+#echo " key_file = '/etc/pki/libvirt/private/clientkey.pem'" >> libvirtd.conf
+
 sudo mkdir -pv /etc/pki/libvirt/private
 sudo mv admin_desktop_client_certificate.pem   /etc/pki/libvirt/clientcert.pem
-sudo mv admin_desktop_client_key.pem           /etc/pki/libvirt/private/clientkey.pem
-sudo chmod 400 /etc/pki/libvirt/clientcert.pem /etc/pki/libvirt/private/clientkey.pem
-sudo restorecon /etc/pki/libvirt/clientcert.pem /etc/pki/libvirt/private/clientkey.pem
+sudo chmod 444 /etc/pki/libvirt/clientcert.pem
+sudo restorecon /etc/pki/libvirt/clientcert.pem
 
+sudo mv admin_desktop_client_key.pem           /etc/pki/libvirt/private/clientkey.pem
+sudo chmod 400 /etc/pki/libvirt/private/clientkey.pem
+sudo restorecon /etc/pki/libvirt/private/clientkey.pem
+
+#sudo mv libvirtd.conf /etc/libvirt/libvirtd.conf
+#sudo restorecon /etc/libvirt/libvirtd.conf
 

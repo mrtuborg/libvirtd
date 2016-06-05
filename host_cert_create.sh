@@ -1,13 +1,15 @@
 #!/bin/bash
-org=${1}
-host_system=${2}
+org=${2}
+host_system=${1}
 
 [ -z "${org}" ] && org=libvirt.org
 [ -z "${host_system}" ] && \
-                   echo "Specify host address as a 2nd argument" && \
+                   echo "Specify host address as a 1st argument" && \
                    exit -1
 
-host_name=$(ssh root@${host_system} hostname)
+host_name=${host_system}
+
+#$(ssh root@${host_system} hostname)
 
 # 1. Create the Server Certificate Template
 #
@@ -85,9 +87,11 @@ ssh root@${host_system} "restorecon -R /etc/pki/libvirt /etc/pki/libvirt/private
 # to be in a different location on the host, you can configure this
 # in the /etc/libvirt/libvirtd.conf configuration file.
 
-echo "cert_file = '/etc/pki/libvirt/servercert.pem'" > libvirtd.conf 
-echo " key_file = '/etc/pki/libvirt/private/serverkey.pem'" >> libvirtd.conf
-
-scp libvirtd.conf root@${host_system}:libvirtd.conf
-ssh root@${host_system} "cat libvirtd.conf >> /etc/libvirt/libvirtd.conf"
+##################################
+# DO NOT OVERRIDE libvirtd.conf
+##################################
+# echo "cert_file = '/etc/pki/libvirt/servercert.pem'" > libvirtd.conf 
+# echo " key_file = '/etc/pki/libvirt/private/serverkey.pem'" >> libvirtd.conf
+# scp libvirtd.conf root@${host_system}:libvirtd.conf
+# ssh root@${host_system} "mv libvirtd.conf /etc/libvirt/libvirtd.conf"
 
