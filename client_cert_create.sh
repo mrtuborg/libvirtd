@@ -8,7 +8,8 @@ server_address=${1}
 
 server_hostname=${server_address}
 #$(ssh root@${host_system} hostname)
-client_hostname=10.0.1.42 
+NET_IP=$(ifconfig ${NET_IF} 2>/dev/null | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+client_hostname=${NET_IP}
 #$(hostname)
 
 [ -z "${org}" ] && org=libvirt.org

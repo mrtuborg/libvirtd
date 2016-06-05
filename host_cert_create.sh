@@ -1,6 +1,7 @@
 #!/bin/bash
 org=${2}
 host_system=${1}
+avoid_remote=${3}
 
 [ -z "${org}" ] && org=libvirt.org
 [ -z "${host_system}" ] && \
@@ -63,24 +64,26 @@ certtool --generate-certificate \
 # 4. Cleanup
 rm host_server_template.info
 
-# 5. Ownership, Permissions, and SELinux labels
-ssh root@${host_system} "mkdir -pv /etc/pki/libvirt"
-ssh root@${host_system} "chown root:qemu /etc/pki/libvirt"
-ssh root@${host_system} "chmod 755 /etc/pki/libvirt"
-#  SELinux label: system_u:object_r:cert_t:s0
-ssh root@${host_system} "mkdir -pv /etc/pki/libvirt/private"
-ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/private"
-ssh root@${host_system} "chmod 750 /etc/pki/libvirt/private"
+if [[ ${avoid_remote} == "--local-only" ]]; then
+	# 5. Ownership, Permissions, and SELinux labels
+	ssh root@${host_system} "mkdir -pv /etc/pki/libvirt"
+	ssh root@${host_system} "chown root:qemu /etc/pki/libvirt"
+	ssh root@${host_system} "chmod 755 /etc/pki/libvirt"
+	#  SELinux label: system_u:object_r:cert_t:s0
+	ssh root@${host_system} "mkdir -pv /etc/pki/libvirt/private"
+	ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/private"
+	ssh root@${host_system} "chmod 750 /etc/pki/libvirt/private"
 
-scp host_server_certificate.pem root@${host_system}:servercert.pem
-scp host_server_key.pem         root@${host_system}:serverkey.pem
-ssh root@${host_system} "mv servercert.pem /etc/pki/libvirt/"
-ssh root@${host_system} "mv serverkey.pem /etc/pki/libvirt/private/"
-ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/servercert.pem"
-ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/private/serverkey.pem"
-ssh root@${host_system} "chmod 440 /etc/pki/libvirt/servercert.pem"
-ssh root@${host_system} "chmod 440 /etc/pki/libvirt/private/serverkey.pem"
-ssh root@${host_system} "restorecon -R /etc/pki/libvirt /etc/pki/libvirt/private"
+	scp host_server_certificate.pem root@${host_system}:servercert.pem
+	scp host_server_key.pem         root@${host_system}:serverkey.pem
+	ssh root@${host_system} "mv servercert.pem /etc/pki/libvirt/"
+	ssh root@${host_system} "mv serverkey.pem /etc/pki/libvirt/private/"
+	ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/servercert.pem"
+	ssh root@${host_system} "chown root:qemu /etc/pki/libvirt/private/serverkey.pem"
+	ssh root@${host_system} "chmod 440 /etc/pki/libvirt/servercert.pem"
+	ssh root@${host_system} "chmod 440 /etc/pki/libvirt/private/serverkey.pem"
+	ssh root@${host_system} "restorecon -R /etc/pki/libvirt /etc/pki/libvirt/private"
+fi
 
 # 6. Overriding the default locations
 # If you need the Server Certificate file and its public key
